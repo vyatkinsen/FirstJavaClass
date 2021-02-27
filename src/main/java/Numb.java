@@ -1,29 +1,48 @@
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 
-/*
-Формирование значения стандартного типа(int, long, float, double).
-*/
-
 public class Numb {
     private final String number;
     private final String whole;
     private final String fractional;
     private boolean flag = false;
 
-    public Numb(double x) {
-        number = String.valueOf(x);
-        if (x < 0)  flag = true;
-        String[] str = String.valueOf(x).split("\\.");
-        whole = String.valueOf(Math.abs(Integer.parseInt(str[0])));
+    public Numb(double d) {
+        number = String.valueOf(d);
+        if (d < 0)  flag = true;
+        String[] str = String.valueOf(d).split("\\.");
+        whole = String.valueOf(Math.abs(Long.parseLong(str[0])));
         fractional = str[1];
+    }
+
+    public Numb(float f) {
+        number = String.valueOf(f);
+        if (f < 0)  flag = true;
+        String[] str = String.valueOf(f).split("\\.");
+        whole = String.valueOf(Math.abs(Long.parseLong(str[0])));
+        fractional = str[1];
+    }
+
+    public Numb(int i) {
+        number = i + ".0";
+        if (i < 0)  flag = true;
+        whole = String.valueOf(Math.abs(i));
+        fractional = "0";
+    }
+
+    public Numb(long l) {
+        number = l + ".0";
+        if (l < 0)  flag = true;
+        whole = String.valueOf(Math.abs(l));
+        fractional = "0";
     }
 
     public Numb(@NotNull String s) {
         number = s;
         String[] str = s.split("\\.");
+        if (str.length>2) throw new IllegalArgumentException();
         if (String.valueOf(number.charAt(0)).equals("-"))  flag = true;
-        whole = String.valueOf(Math.abs(Integer.parseInt(str[0])));
+        whole = String.valueOf(Math.abs(Long.parseLong(str[0])));
         if (str.length == 1) fractional = "0";
         else fractional = str[1];
     }
@@ -46,38 +65,34 @@ public class Numb {
     }
 
     public double roundingToZero() {
-        if (flag) return -Integer.parseInt(whole);
-        else return Integer.parseInt(whole);
+        if (flag) return -Long.parseLong(whole);
+        else return Long.parseLong(whole);
     }
 
     public double roundingMath() {
         int lenOfFract = fractional.length();
-        int toRes;
+        long toRes;
         int r = 5;
         while (String.valueOf(r).length() < lenOfFract) r *= 10;
 
-        if (String.valueOf( r + Integer.parseInt(fractional)).length() > lenOfFract) toRes =  Integer.parseInt(whole) + 1;
-        else toRes = Integer.parseInt(whole);
+        if (String.valueOf( r + Long.parseLong(fractional)).length() > lenOfFract) toRes =  Long.parseLong(whole) + 1;
+        else toRes = Long.parseLong(whole);
 
         if (flag) return -toRes;
         else return toRes;
     }
 
     public int toInt(){
-        return Integer.parseInt(whole);
-    }
+        if (flag) return -Integer.parseInt(whole);
+        else return Integer.parseInt(whole); }
 
     public long toLong(){
-        return Long.parseLong(whole);
-    }
+        if (flag) return -Long.parseLong(whole);
+        else return Long.parseLong(whole); }
 
-    public float toFloat(){
-        return Float.parseFloat(number);
-    }
+    public float toFloat(){ return Float.parseFloat(number); }
 
-    public double toDouble(){
-        return Double.parseDouble(number);
-    }
+    public double toDouble(){ return Double.parseDouble(number); }
 
     private ArrayList<Integer> alignmentWhole(@NotNull ArrayList<Integer> list, int maxSize){
         int fal = list.size();
@@ -138,18 +153,19 @@ public class Numb {
         return new long[]{firstNum, secondNum};
     }
 
-    public double plus(@NotNull Numb anotherNumb){ //TODO()
+    public double plus(@NotNull Numb anotherNumb){
         long[] aligmentNumbers = aligment(anotherNumb.whole, anotherNumb.fractional);
         long firstNum = aligmentNumbers[0];
         long secondNum = aligmentNumbers[1];
         int maxFract = Math.max(fractional.length(), anotherNumb.fractional.length());
 
+
+        if (firstNum > secondNum && anotherNumb.flag && !flag) return minus(firstNum, secondNum, maxFract);
+        if (firstNum < secondNum && flag && !anotherNumb.flag) return minus(secondNum, firstNum, maxFract);
+        if (firstNum < secondNum && anotherNumb.flag && !flag) return -minus(secondNum, firstNum, maxFract);
+        if (firstNum > secondNum && flag && !anotherNumb.flag) return -minus(firstNum, secondNum, maxFract);
         if(flag && anotherNumb.flag) return -plus(firstNum, secondNum, maxFract);
         if (!flag && !anotherNumb.flag)  return  plus(firstNum, secondNum, maxFract);
-        if (firstNum > secondNum && anotherNumb.flag) return minus(firstNum, secondNum, maxFract);
-        if (firstNum < secondNum && flag) return minus(secondNum, firstNum, maxFract);
-        if (firstNum < secondNum && anotherNumb.flag) return -minus(secondNum, firstNum, maxFract);
-        if (firstNum > secondNum && flag) return -minus(firstNum, secondNum, maxFract);
         else return 0;
     }
 
@@ -280,9 +296,8 @@ public class Numb {
         String result;
         if (flag == anotherNumb.flag)  result = division(fn, sn);
         else result = "-" + division(fn, sn);
-        if (Integer.parseInt(whole) == 0 && Integer.parseInt(anotherNumb.whole)>0) result="0.0";
-        Numb toReturn = new Numb(result);
-        return toReturn.roundingMath();
+        if (Long.parseLong(whole) == 0 && Long.parseLong(anotherNumb.whole)>0) result="0.0";
+        return (new Numb(result)).roundingMath();
     }
 
     @NotNull

@@ -14,6 +14,8 @@ class NumbTest {
         assertEquals(4, t4.before());
         Numb t5 = new Numb(1337228.0876876973582);
         assertEquals(7, t5.before());
+        Numb t6 = new Numb(1337228293845204395L);
+        assertEquals(19, t6.before());
     }
 
     @org.junit.jupiter.api.Test
@@ -115,24 +117,61 @@ class NumbTest {
     void toInt() {
         Numb t1 = new Numb(122.60312);
         assertEquals(122, t1.toInt());
+        Numb t2 = new Numb (-1234358960111L);
+        assertThrows(NumberFormatException.class, t2::toInt);
+        Numb t3 = new Numb(-1345.528f);
+        assertEquals(-1345, t3.toInt());
+        Numb t4 = new Numb("-2359.04005");
+        assertEquals(-2359, t4.toInt());
+        Numb t5 = new Numb(3453);
+        assertEquals(3453, t5.toInt());
     }
 
     @org.junit.jupiter.api.Test
     void toLong() {
         Numb t1 = new Numb(122.60312);
         assertEquals(122, t1.toLong());
+        Numb t2 = new Numb (1234358960111L);
+        assertEquals(1234358960111L, t2.toLong());
+        Numb t3 = new Numb(1347655.5280000000f);
+        assertEquals(1347655, t3.toLong());
+        Numb t4 = new Numb("2643490807859.04005");
+        assertEquals(2643490807859L, t4.toLong());
+        Numb t5 = new Numb(3453.0);
+        assertEquals(3453, t5.toLong());
     }
 
     @org.junit.jupiter.api.Test
     void toDouble() {
-        Numb t1 = new Numb(122.60312);
-        assertEquals(122.60312, t1.toDouble());
+        Numb t1 = new Numb(12124.00044);
+        assertEquals(12124.00044, t1.toDouble());
+        Numb t2 = new Numb(-33);
+        assertEquals(-33.0, t2.toDouble());
+        Numb t3 = new Numb(0.0944f);
+        assertEquals(0.0944, t3.toDouble());
+        Numb t4 = new Numb(234.316f);
+        assertEquals(234.316, t4.toDouble());
+        Numb t5 = new Numb(-3240432L);
+        assertEquals(-3240432.0, t5.toDouble());
+        Numb t6 = new Numb(-2233.3466);
+        assertEquals(-2233.3466, t6.toDouble());
+
     }
 
     @org.junit.jupiter.api.Test
     void toFloat() {
-        Numb t1 = new Numb(122.60312);
-        assertEquals(122.60312f, t1.toFloat());
+        Numb t1 = new Numb(9871.000004);
+        assertEquals(9871.0f, t1.toFloat());
+        Numb t2 = new Numb("0.543566");
+        assertEquals(0.543566f, t2.toFloat());
+        Numb t3 = new Numb(137.0f);
+        assertEquals(137.0f, t3.toFloat());
+        Numb t4 = new Numb(203.6236);
+        assertEquals(203.6236f, t4.toFloat());
+        Numb t5 = new Numb(1.1344);
+        assertEquals(1.1344f, t5.toFloat());
+        Numb t6 = new Numb(-0.99999);
+        assertEquals(-0.99999f, t6.toFloat());
     }
 
     @org.junit.jupiter.api.Test
@@ -140,8 +179,8 @@ class NumbTest {
         Numb t1 = new Numb(9871.000004);
         Numb t2 = new Numb(0.543566);
         assertEquals(9871.54357, t1.plus(t2));
-        Numb t3 = new Numb(137.0);
-        Numb t4 = new Numb(203.6236);
+        Numb t3 = new Numb(137.0f);
+        Numb t4 = new Numb(203.6236f);
         assertEquals(340.6236, t3.plus(t4));
         Numb t5 = new Numb(1.1344);
         Numb t6 = new Numb(-0.99999);
@@ -152,7 +191,7 @@ class NumbTest {
         Numb t9 = new Numb(-122.00044);
         Numb t10 = new Numb(13.3466);
         assertEquals(-108.65384, t9.plus(t10));
-        Numb t11 = new Numb(-0.008010);
+        Numb t11 = new Numb(-0.008010f);
         Numb t12 = new Numb(13.3466);
         assertEquals(13.33859, t11.plus(t12));
         Numb t13 = new Numb(-167522.900044);
@@ -164,9 +203,9 @@ class NumbTest {
         Numb t17 = new Numb(1.112);
         Numb t18 = new Numb(1.112);
         assertEquals(2.224, t17.plus(t18));
-        Numb t19 = new Numb(-2831478.131084);
+        Numb t19 = new Numb(-2831478953952L);
         Numb t20 = new Numb(-37134.022312);
-        assertEquals(-2868612.153396, t19.plus(t20));
+        assertEquals(-2.8314789910860225E12, t19.plus(t20));
     }
 
     @org.junit.jupiter.api.Test
@@ -183,8 +222,8 @@ class NumbTest {
         Numb t7 = new Numb(2342.00014);
         Numb t8 = new Numb(-53452.0);
         assertEquals(55794.00014, t7.minus(t8));
-        Numb t9 = new Numb(-1324.059);
-        Numb t10 = new Numb(-0.0016);
+        Numb t9 = new Numb(-1324.059f);
+        Numb t10 = new Numb(-0.0016f);
         assertEquals(-1324.0574, t9.minus(t10));
         Numb t11 = new Numb(-841.0035);
         Numb t12 = new Numb(-25913.0002);
@@ -192,11 +231,11 @@ class NumbTest {
         Numb t13 = new Numb(00099432.1000);
         Numb t14 = new Numb(3.0);
         assertEquals(99429.1, t13.minus(t14));
-        Numb t15 = new Numb(-8800.555);
+        Numb t15 = new Numb(-8800.555f);
         Numb t16 = new Numb(-3535.099);
         assertEquals(-5265.456, t15.minus(t16));
         Numb t17 = new Numb("456.6");
-        Numb t18 = new Numb(8.386);
+        Numb t18 = new Numb(8.386f);
         assertEquals(448.214, t17.minus(t18));
         Numb t19 = new Numb("0.9952");
         Numb t20 = new Numb("-124.45335");
@@ -211,30 +250,30 @@ class NumbTest {
         Numb t1 = new Numb(12124.00044);
         Numb t2 = new Numb(33.3466);
         assertEquals(404294.193072504,t1.multiplication(t2));
-        Numb t3 = new Numb(0.0944);
-        Numb t4 = new Numb(234.31669);
-        assertEquals(22.119495536,t3.multiplication(t4));
+        Numb t3 = new Numb(0.0944f);
+        Numb t4 = new Numb(234.316f);
+        assertEquals(22.1194304,t3.multiplication(t4));
         Numb t5 = new Numb(3240432.0);
         Numb t6 = new Numb(-2233.3466);
         assertEquals(-7.2370077897312E9,t5.multiplication(t6));
         Numb t7 = new Numb(2342.00014);
         Numb t8 = new Numb(-53452.0);
         assertEquals(-1.2518459148328E8,t7.multiplication(t8));
-        Numb t9 = new Numb(-1324.059);
+        Numb t9 = new Numb(-1324.059f);
         Numb t10 = new Numb(-0.0016);
         assertEquals(2.1184944,t9.multiplication(t10));
-        Numb t11 = new Numb(-841.0035);
+        Numb t11 = new Numb(-841439569L);
         Numb t12 = new Numb(-25913.0002);
-        assertEquals(2.17929238637007E7,t11.multiplication(t12));
+        assertEquals(2.1804223719784914E13,t11.multiplication(t12));
         Numb t13 = new Numb(00099432.1000);
         Numb t14 = new Numb(3.0);
         assertEquals(298296.3,t13.multiplication(t14));
         Numb t15 = new Numb(-8800.555);
-        Numb t16 = new Numb(-3535.099);
+        Numb t16 = new Numb(-3535.099f);
         assertEquals(3.1110833179945E7,t15.multiplication(t16));
         Numb t17 = new Numb("456.6");
-        Numb t18 = new Numb(8.386);
-        assertEquals(3829.0476,t17.multiplication(t18));
+        Numb t18 = new Numb(0);
+        assertEquals(0,t17.multiplication(t18));
         Numb t19 = new Numb("0.9952");
         Numb t20 = new Numb("-124.45335");
         assertEquals(-123.85597392,t19.multiplication(t20));
@@ -251,17 +290,17 @@ class NumbTest {
         Numb t3 = new Numb(0.944);
         Numb t4 = new Numb(234.31669);
         assertEquals(0.0,t3.division(t4));
-        Numb t5 = new Numb(3240432.0);
+        Numb t5 = new Numb(3240432);
         Numb t6 = new Numb(-2233.3466);
         assertEquals(-1451.0,t5.division(t6));
         Numb t7 = new Numb(2342.00014);
-        Numb t8 = new Numb(-53452.0);
+        Numb t8 = new Numb(-53452);
         assertEquals(0,t7.division(t8));
         Numb t9 = new Numb(-1324.059);
         Numb t10 = new Numb(-0.0016);
         assertEquals(827537.0,t9.division(t10));
         Numb t11 = new Numb(-841.0035);
-        Numb t12 = new Numb(-25913.0002);
+        Numb t12 = new Numb(-25913.0002f);
         assertEquals(0,t11.division(t12));
         Numb t13 = new Numb(00099432.1000);
         Numb t14 = new Numb(3.0);
