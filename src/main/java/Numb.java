@@ -1,75 +1,58 @@
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
+import java.util.List;
 
 public class Numb {
     private final String number;
     private final String whole;
     private final String fractional;
-    private boolean flag = false;
-
-    public Numb(double d) {
-        number = String.valueOf(d);
-        if (d < 0)  flag = true;
-        String[] str = String.valueOf(d).split("\\.");
-        whole = String.valueOf(Math.abs(Long.parseLong(str[0])));
-        fractional = str[1];
-    }
-
-    public Numb(float f) {
-        number = String.valueOf(f);
-        if (f < 0)  flag = true;
-        String[] str = String.valueOf(f).split("\\.");
-        whole = String.valueOf(Math.abs(Long.parseLong(str[0])));
-        fractional = str[1];
-    }
-
-    public Numb(int i) {
-        number = i + ".0";
-        if (i < 0)  flag = true;
-        whole = String.valueOf(Math.abs(i));
-        fractional = "0";
-    }
-
-    public Numb(long l) {
-        number = l + ".0";
-        if (l < 0)  flag = true;
-        whole = String.valueOf(Math.abs(l));
-        fractional = "0";
-    }
+    private boolean sign = false;
 
     public Numb(@NotNull String s) {
         number = s;
         String[] str = s.split("\\.");
         if (str.length>2) throw new IllegalArgumentException();
-        if (String.valueOf(number.charAt(0)).equals("-"))  flag = true;
+        if (String.valueOf(number.charAt(0)).equals("-"))  sign = true;
         whole = String.valueOf(Math.abs(Long.parseLong(str[0])));
-        if (str.length == 1) fractional = "0";
-        else fractional = str[1];
+        if (str.length == 1 || (str[1].length()==1 && str[1].charAt(0) == '0')) fractional = "0";
+        else {
+            StringBuilder sb = new StringBuilder();
+            int idx = str[1].length() ;
+            while (idx>0){
+                if (str[1].charAt(idx - 1) == '0'){
+                    idx--;
+                }
+                else break;
+            }
+            while(idx>0){
+                sb.insert(0, str[1].charAt(idx - 1));
+                idx--;
+            }
+            fractional = sb.toString();}
     }
 
-    public int before() {
-        return String.valueOf(whole).length();
+    public String getValue(){
+        if (sign) return "-" + whole + "." + fractional;
+        else  return whole + "." + fractional;
     }
 
-    public int after() {
-        return fractional.length();
-    }
+    public int before() { return String.valueOf(whole).length(); }
 
-    public String numberToString() {
-        return number;
-    }
+    public int after() { return fractional.length(); }
+
+    public String numberToString() { return number; }
 
     public double stringToNumber() {
-        if (flag) return -Double.parseDouble(whole + "." + fractional);
+        if (sign) return -Double.parseDouble(whole + "." + fractional);
         else  return Double.parseDouble(whole + "." + fractional);
     }
 
-    public double roundingToZero() {
-        if (flag) return -Long.parseLong(whole);
-        else return Long.parseLong(whole);
+    public Numb roundingToZero() {
+        if (sign) return new Numb("-" + whole);
+        else return new Numb(whole);
     }
 
-    public double roundingMath() {
+    public Numb roundingMath() {
         int lenOfFract = fractional.length();
         long toRes;
         int r = 5;
@@ -78,23 +61,23 @@ public class Numb {
         if (String.valueOf( r + Long.parseLong(fractional)).length() > lenOfFract) toRes =  Long.parseLong(whole) + 1;
         else toRes = Long.parseLong(whole);
 
-        if (flag) return -toRes;
-        else return toRes;
+        if (sign) return new Numb(String.valueOf((-toRes)));
+        else return new Numb(String.valueOf((toRes)));
     }
 
     public int toInt(){
-        if (flag) return -Integer.parseInt(whole);
+        if (sign) return -Integer.parseInt(whole);
         else return Integer.parseInt(whole); }
 
     public long toLong(){
-        if (flag) return -Long.parseLong(whole);
+        if (sign) return -Long.parseLong(whole);
         else return Long.parseLong(whole); }
 
     public float toFloat(){ return Float.parseFloat(number); }
 
     public double toDouble(){ return Double.parseDouble(number); }
 
-    private ArrayList<Integer> alignmentWhole(@NotNull ArrayList<Integer> list, int maxSize){
+    private List<Integer> alignmentWhole(@NotNull List<Integer> list, int maxSize){
         int fal = list.size();
         if (fal < maxSize) {
             while (fal != maxSize) {
@@ -105,7 +88,7 @@ public class Numb {
         return list;
     }
 
-    private ArrayList<Integer> alignmentFractional(@NotNull ArrayList<Integer> list, int maxSize){
+    private List<Integer> alignmentFractional(@NotNull List<Integer> list, int maxSize){
         int fal = list.size();
         if (fal < maxSize) {
             while (fal != maxSize) {
@@ -117,7 +100,7 @@ public class Numb {
     }
 
     private long[] aligment(@NotNull String secondWhole, String secondFractional) {
-        ArrayList<Integer> firstWholeList = new ArrayList<>(), secondWholeList = new ArrayList<>();
+        List<Integer> firstWholeList = new ArrayList<>(), secondWholeList = new ArrayList<>();
         int fwl = whole.length();
         int swl = secondWhole.length();
 
@@ -126,16 +109,16 @@ public class Numb {
 
         int maxWhlen = Math.max(fwl, swl);
 
-        ArrayList<Integer> alignmentFirstWholeList = alignmentWhole(firstWholeList, maxWhlen);
-        ArrayList<Integer> alignmentSecondWholeList = alignmentWhole(secondWholeList, maxWhlen);
+        List<Integer> alignmentFirstWholeList = alignmentWhole(firstWholeList, maxWhlen);
+        List<Integer> alignmentSecondWholeList = alignmentWhole(secondWholeList, maxWhlen);
 
         for (int i = 0; i < fractional.length(); i++) alignmentFirstWholeList.add(Integer.parseInt(String.valueOf(fractional.charAt(i))));
         for (int i = 0; i < secondFractional.length(); i++) alignmentSecondWholeList.add(Integer.parseInt(String.valueOf(secondFractional.charAt(i))));
 
         int maxSize = Math.max(alignmentFirstWholeList.size(), alignmentSecondWholeList.size());
 
-        ArrayList<Integer> firstNumList = alignmentFractional(alignmentFirstWholeList, maxSize);
-        ArrayList<Integer> secondNumList = alignmentFractional(alignmentSecondWholeList, maxSize);
+        List<Integer> firstNumList = alignmentFractional(alignmentFirstWholeList, maxSize);
+        List<Integer> secondNumList = alignmentFractional(alignmentSecondWholeList, maxSize);
 
         long firstNum = 0, secondNum = 0;
         long co = 1;
@@ -153,23 +136,22 @@ public class Numb {
         return new long[]{firstNum, secondNum};
     }
 
-    public double plus(@NotNull Numb anotherNumb){
+    public Numb plus(@NotNull Numb anotherNumb){
         long[] aligmentNumbers = aligment(anotherNumb.whole, anotherNumb.fractional);
         long firstNum = aligmentNumbers[0];
         long secondNum = aligmentNumbers[1];
         int maxFract = Math.max(fractional.length(), anotherNumb.fractional.length());
 
-
-        if (firstNum > secondNum && anotherNumb.flag && !flag) return minus(firstNum, secondNum, maxFract);
-        if (firstNum < secondNum && flag && !anotherNumb.flag) return minus(secondNum, firstNum, maxFract);
-        if (firstNum < secondNum && anotherNumb.flag && !flag) return -minus(secondNum, firstNum, maxFract);
-        if (firstNum > secondNum && flag && !anotherNumb.flag) return -minus(firstNum, secondNum, maxFract);
-        if(flag && anotherNumb.flag) return -plus(firstNum, secondNum, maxFract);
-        if (!flag && !anotherNumb.flag)  return  plus(firstNum, secondNum, maxFract);
-        else return 0;
+        if (firstNum > secondNum && anotherNumb.sign && !sign) return new Numb(minus(firstNum, secondNum, maxFract));
+        if (firstNum < secondNum && sign && !anotherNumb.sign) return new Numb(minus(secondNum, firstNum, maxFract));
+        if (firstNum < secondNum && anotherNumb.sign && !sign) return new Numb("-" + minus(secondNum, firstNum, maxFract));
+        if (firstNum > secondNum && sign && !anotherNumb.sign) return new Numb("-" + minus(firstNum, secondNum, maxFract));
+        if(sign && anotherNumb.sign) return new Numb("-" + plus(firstNum, secondNum, maxFract));
+        if (!sign && !anotherNumb.sign)  return new Numb(plus(firstNum, secondNum, maxFract));
+        else return new Numb("0");
     }
 
-    private double plus(long first, long second, int maxFract) {
+    private String plus(long first, long second, int maxFract) {
         String toReturn = String.valueOf(first + second);
         StringBuilder sb = new StringBuilder();
 
@@ -177,26 +159,26 @@ public class Numb {
             if (i == toReturn.length() - maxFract) sb.append(".");
             sb.append(toReturn.charAt(i));
         }
-        return Double.parseDouble(sb.toString());
+        return sb.toString();
     }
 
-    public double minus(@NotNull Numb anotherNumb){
+    public Numb minus(@NotNull Numb anotherNumb){
 
         long[] aligmentNumbers = aligment(anotherNumb.whole, anotherNumb.fractional);
         long firstNum = aligmentNumbers[0];
         long secondNum = aligmentNumbers[1];
         int maxFract = Math.max(fractional.length(), anotherNumb.fractional.length());
 
-        if (firstNum < secondNum && !flag && !anotherNumb.flag) return -minus(secondNum, firstNum, maxFract);
-        else if (firstNum > secondNum && !flag && !anotherNumb.flag) return minus(firstNum, secondNum, maxFract);
-        else if (firstNum > secondNum && flag && anotherNumb.flag) return -minus(firstNum, secondNum, maxFract);
-        else if (firstNum < secondNum && flag && anotherNumb.flag) return -minus(secondNum, firstNum, maxFract);
-        else if(flag && anotherNumb.flag) return -plus(firstNum, secondNum, maxFract);
-        else if (!flag && anotherNumb.flag)  return  plus(firstNum, secondNum, maxFract);
-        else return 0;
+        if (firstNum < secondNum && !sign && !anotherNumb.sign || firstNum < secondNum && sign && anotherNumb.sign)
+            return new Numb("-" + minus(secondNum, firstNum, maxFract));
+        else if (firstNum > secondNum && !sign && !anotherNumb.sign) return new Numb(minus(firstNum, secondNum, maxFract));
+        else if (firstNum > secondNum && sign && anotherNumb.sign) return new Numb("-" + minus(firstNum, secondNum, maxFract));
+        else if(sign && anotherNumb.sign) return new Numb("-" + plus(firstNum, secondNum, maxFract));
+        else if (!sign && anotherNumb.sign) return new Numb(plus(firstNum, secondNum, maxFract));
+        else return new Numb("0");
     }
 
-    private double minus(long first, long second, int maxFract){
+    private String minus(long first, long second, int maxFract){
         String toReturn = String.valueOf(first - second);
         StringBuilder sb = new StringBuilder();
 
@@ -205,11 +187,11 @@ public class Numb {
             sb.append(toReturn.charAt(i));
         }
 
-        if (sb.indexOf(".") == 0) return Double.parseDouble(0 + sb.toString());
-        else return Double.parseDouble(sb.toString());
+        if (sb.indexOf(".") == 0) return 0 + sb.toString();
+        else return sb.toString();
     }
 
-    public double multiplication(Numb anotherNumb){
+    public Numb multiplication(Numb anotherNumb){
 
         ArrayList<Long> firstNum = new ArrayList<>(), secondNumber = new ArrayList<>();
 
@@ -221,8 +203,8 @@ public class Numb {
 
         int diOfFractLen = fractional.length()+anotherNumb.fractional.length();
 
-        if (flag == anotherNumb.flag) return Double.parseDouble(multiplication(firstNum, secondNumber, diOfFractLen));
-        else return -Double.parseDouble(multiplication(firstNum, secondNumber, diOfFractLen));
+        if (sign == anotherNumb.sign) return new Numb(multiplication(firstNum, secondNumber, diOfFractLen));
+        else return new Numb("-" + multiplication(firstNum, secondNumber, diOfFractLen));
     }
 
     @NotNull
@@ -254,7 +236,7 @@ public class Numb {
         return sb.toString();
     }
 
-    public Double division(Numb anotherNumb){
+    public Numb division(Numb anotherNumb){
         ArrayList<Integer> firstNum = new ArrayList<>(), secondNum = new ArrayList<>();
 
         for (int i = 0; i < whole.length(); i++) firstNum.add(Integer.parseInt(String.valueOf(whole.charAt(i))));
@@ -291,10 +273,10 @@ public class Numb {
             count *= 10;
         }
 
-        if (fn == 0) return 0.0;
+        if (fn == 0) return new Numb("0.0");
         if (sn == 0) throw new ArithmeticException("Нельзя делить на ноль");
         String result;
-        if (flag == anotherNumb.flag)  result = division(fn, sn);
+        if (sign == anotherNumb.sign)  result = division(fn, sn);
         else result = "-" + division(fn, sn);
         if (Long.parseLong(whole) == 0 && Long.parseLong(anotherNumb.whole)>0) result="0.0";
         return (new Numb(result)).roundingMath();
