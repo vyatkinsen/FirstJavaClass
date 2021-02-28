@@ -1,300 +1,170 @@
 import org.jetbrains.annotations.NotNull;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Numb {
-    private final String number;
-    private final String whole;
-    private final String fractional;
-    private boolean sign = false;
+    private final String strNum;
+    private  long number;
+    private  int scale = 0;
 
-    public Numb(@NotNull String s) {
-        number = s;
-        String[] str = s.split("\\.");
-        if (str.length>2) throw new IllegalArgumentException();
-        if (String.valueOf(number.charAt(0)).equals("-"))  sign = true;
-        whole = String.valueOf(Math.abs(Long.parseLong(str[0])));
-        if (str.length == 1 || (str[1].length()==1 && str[1].charAt(0) == '0')) fractional = "0";
-        else {
-            StringBuilder sb = new StringBuilder();
-            int idx = str[1].length() ;
-            while (idx>0){
-                if (str[1].charAt(idx - 1) == '0'){
-                    idx--;
-                }
-                else break;
+    public Numb(@NotNull String s, int scale) {
+        strNum = s;
+        this.scale = scale;
+        String[] str = s.trim().split("\\.");
+
+        if (str.length>2 || !s.matches("\\A[-]?\\d+([.](\\d+))?\\z")) throw new IllegalArgumentException("Введено некорректное число");
+
+        number = Math.abs(Long.parseLong(str[0]));
+        if (str.length == 2) {
+            int idx = 0;
+            while (idx<scale){
+                number = number *10 + Integer.parseInt(String.valueOf(str[1].charAt(idx)));
+                idx++;
             }
-            while(idx>0){
-                sb.insert(0, str[1].charAt(idx - 1));
-                idx--;
+            if (scale < str[1].length() && Integer.parseInt(String.valueOf(str[1].charAt(scale))) >= 5) number++;
+            if ((str[0]).charAt(0)=='-') number = -number;
             }
-            fractional = sb.toString();}
     }
 
-    public String getValue(){
-        if (sign) return "-" + whole + "." + fractional;
-        else  return whole + "." + fractional;
-    }
+    public Numb(double d, int scale){
+        strNum = String.valueOf(d);
+        this.scale = scale;
+        String[] str = String.valueOf(d).trim().split("\\.");
 
-    public int before() { return String.valueOf(whole).length(); }
+        if (str.length>2 || !strNum.matches("\\A[-]?\\d+([.](\\d+))?\\z")) throw new IllegalArgumentException("Введено некорректное число");
 
-    public int after() { return fractional.length(); }
-
-    public String numberToString() { return number; }
-
-    public double stringToNumber() {
-        if (sign) return -Double.parseDouble(whole + "." + fractional);
-        else  return Double.parseDouble(whole + "." + fractional);
-    }
-
-    public Numb roundingToZero() {
-        if (sign) return new Numb("-" + whole);
-        else return new Numb(whole);
-    }
-
-    public Numb roundingMath() {
-        int lenOfFract = fractional.length();
-        long toRes;
-        int r = 5;
-        while (String.valueOf(r).length() < lenOfFract) r *= 10;
-
-        if (String.valueOf( r + Long.parseLong(fractional)).length() > lenOfFract) toRes =  Long.parseLong(whole) + 1;
-        else toRes = Long.parseLong(whole);
-
-        if (sign) return new Numb(String.valueOf((-toRes)));
-        else return new Numb(String.valueOf((toRes)));
-    }
-
-    public int toInt(){
-        if (sign) return -Integer.parseInt(whole);
-        else return Integer.parseInt(whole); }
-
-    public long toLong(){
-        if (sign) return -Long.parseLong(whole);
-        else return Long.parseLong(whole); }
-
-    public float toFloat(){ return Float.parseFloat(number); }
-
-    public double toDouble(){ return Double.parseDouble(number); }
-
-    private List<Integer> alignmentWhole(@NotNull List<Integer> list, int maxSize){
-        int fal = list.size();
-        if (fal < maxSize) {
-            while (fal != maxSize) {
-                list.add(0, 0);
-                fal++;
-            }
+        number = Math.abs(Long.parseLong(str[0]));
+        int idx = 0;
+        while (idx<scale){
+            number = number *10 + Integer.parseInt(String.valueOf(str[1].charAt(idx)));
+            idx++;
         }
-        return list;
+        if (scale < str[1].length() && Integer.parseInt(String.valueOf(str[1].charAt(scale))) >= 5) number++;
+        if (d<0) number = -number;
     }
 
-    private List<Integer> alignmentFractional(@NotNull List<Integer> list, int maxSize){
-        int fal = list.size();
-        if (fal < maxSize) {
-            while (fal != maxSize) {
-                list.add(0);
-                fal++;
-            }
+    public Numb(float f, int scale){
+        strNum = String.valueOf(f);
+        this.scale = scale;
+        String[] str = String.valueOf(f).trim().split("\\.");
+
+        if (str.length>2 || !strNum.matches("\\A[-]?\\d+([.](\\d+))?\\z")) throw new IllegalArgumentException("Введено некорректное число");
+
+        number = Math.abs(Long.parseLong(str[0]));
+        int idx = 0;
+        while (idx<scale){
+            number = number *10 + Integer.parseInt(String.valueOf(str[1].charAt(idx)));
+            idx++;
         }
-        return list;
+        if (scale < str[1].length() && Integer.parseInt(String.valueOf(str[1].charAt(scale))) >= 5) number++;
+        if (f<0) number = -number;
     }
 
-    private long[] aligment(@NotNull String secondWhole, String secondFractional) {
-        List<Integer> firstWholeList = new ArrayList<>(), secondWholeList = new ArrayList<>();
-        int fwl = whole.length();
-        int swl = secondWhole.length();
+    public Numb(int i){
+        strNum = String.valueOf(i);
+        number = i;
+    }
 
-        for (int i = 0; i < fwl; i++) firstWholeList.add(Integer.parseInt(String.valueOf(whole.charAt(i))));
-        for (int i = 0; i < swl; i++) secondWholeList.add(Integer.parseInt(String.valueOf(secondWhole.charAt(i))));
+    public Numb(long l){
+        strNum = String.valueOf(l);
+        number = l;
+    }
 
-        int maxWhlen = Math.max(fwl, swl);
 
-        List<Integer> alignmentFirstWholeList = alignmentWhole(firstWholeList, maxWhlen);
-        List<Integer> alignmentSecondWholeList = alignmentWhole(secondWholeList, maxWhlen);
+    public String getValue(){ return String.valueOf(number / Math.pow(10, scale)); }
 
-        for (int i = 0; i < fractional.length(); i++) alignmentFirstWholeList.add(Integer.parseInt(String.valueOf(fractional.charAt(i))));
-        for (int i = 0; i < secondFractional.length(); i++) alignmentSecondWholeList.add(Integer.parseInt(String.valueOf(secondFractional.charAt(i))));
+    public double roundingToZero(int i) { return Math.floor(number / Math.pow(10, scale - i))/Math.pow(10, i); }
 
-        int maxSize = Math.max(alignmentFirstWholeList.size(), alignmentSecondWholeList.size());
+    public double roundingMath(int i){ return Math.round(number / Math.pow(10, scale - i))/Math.pow(10, i); }
 
-        List<Integer> firstNumList = alignmentFractional(alignmentFirstWholeList, maxSize);
-        List<Integer> secondNumList = alignmentFractional(alignmentSecondWholeList, maxSize);
+    public int toInt(){ return (int) (number / Math.pow(10, scale)); }
 
-        long firstNum = 0, secondNum = 0;
-        long co = 1;
-        int size = firstNumList.size();
+    public long toLong(){ return (long) (number / Math.pow(10, scale)); }
 
-        for (int c = size - 1; c >= 0; c--){
-            firstNum += co * firstNumList.get(c);
-            co*=10;
+    public float toFloat(){ return (float) (number / Math.pow(10, scale)); }
+
+    public double toDouble(){ return number / Math.pow(10, scale); }
+
+    private long aligment(long num, int scale,  int maxScale){
+        int defOfScale = maxScale - scale;
+        while (defOfScale != 0){
+            num*=10;
+            defOfScale--;
         }
-        co = 1;
-        for (int c = size - 1; c >= 0; c--){
-            secondNum += co * secondNumList.get(c);
-            co*=10;
+        return num;
+    }
+
+    public Numb plus(Numb anotherNumb){
+        long firstNum = number;
+        long secondNum = anotherNumb.number;
+        int maxScale = Math.max(scale, anotherNumb.scale);
+
+        if (scale != maxScale) firstNum = aligment(firstNum, scale, maxScale);
+        if (anotherNumb.scale != maxScale) secondNum = aligment(secondNum, anotherNumb.scale, maxScale);
+
+        String result = String.valueOf(firstNum+secondNum);
+        StringBuilder res = new StringBuilder();
+
+        for (int i = 0; i < result.length(); i++){
+            if (i == result.length() - maxScale) res.append(".");
+            res.append(result.charAt(i));
         }
-        return new long[]{firstNum, secondNum};
+        if (res.charAt(0) == '.') res.insert(0, "0");
+        return new Numb(res.toString(), maxScale);
     }
 
-    public Numb plus(@NotNull Numb anotherNumb){
-        long[] aligmentNumbers = aligment(anotherNumb.whole, anotherNumb.fractional);
-        long firstNum = aligmentNumbers[0];
-        long secondNum = aligmentNumbers[1];
-        int maxFract = Math.max(fractional.length(), anotherNumb.fractional.length());
+    public Numb minus(Numb anotherNumb){
+        long firstNum = number;
+        long secondNum = anotherNumb.number;
+        int maxScale = Math.max(scale, anotherNumb.scale);
 
-        if (firstNum > secondNum && anotherNumb.sign && !sign) return new Numb(minus(firstNum, secondNum, maxFract));
-        if (firstNum < secondNum && sign && !anotherNumb.sign) return new Numb(minus(secondNum, firstNum, maxFract));
-        if (firstNum < secondNum && anotherNumb.sign && !sign) return new Numb("-" + minus(secondNum, firstNum, maxFract));
-        if (firstNum > secondNum && sign && !anotherNumb.sign) return new Numb("-" + minus(firstNum, secondNum, maxFract));
-        if(sign && anotherNumb.sign) return new Numb("-" + plus(firstNum, secondNum, maxFract));
-        if (!sign && !anotherNumb.sign)  return new Numb(plus(firstNum, secondNum, maxFract));
-        else return new Numb("0");
-    }
+        if (scale != maxScale) firstNum = aligment(firstNum, scale, maxScale);
+        if (anotherNumb.scale != maxScale) secondNum = aligment(secondNum, anotherNumb.scale, maxScale);
 
-    private String plus(long first, long second, int maxFract) {
-        String toReturn = String.valueOf(first + second);
-        StringBuilder sb = new StringBuilder();
+        String result = String.valueOf(firstNum-secondNum);
+        StringBuilder res = new StringBuilder();
 
-        for (int i = 0; i < toReturn.length(); i++){
-            if (i == toReturn.length() - maxFract) sb.append(".");
-            sb.append(toReturn.charAt(i));
+        for (int i = 0; i < result.length(); i++){
+            if (i == result.length() - maxScale) res.append(".");
+            res.append(result.charAt(i));
         }
-        return sb.toString();
-    }
-
-    public Numb minus(@NotNull Numb anotherNumb){
-
-        long[] aligmentNumbers = aligment(anotherNumb.whole, anotherNumb.fractional);
-        long firstNum = aligmentNumbers[0];
-        long secondNum = aligmentNumbers[1];
-        int maxFract = Math.max(fractional.length(), anotherNumb.fractional.length());
-
-        if (firstNum < secondNum && !sign && !anotherNumb.sign || firstNum < secondNum && sign && anotherNumb.sign)
-            return new Numb("-" + minus(secondNum, firstNum, maxFract));
-        else if (firstNum > secondNum && !sign && !anotherNumb.sign) return new Numb(minus(firstNum, secondNum, maxFract));
-        else if (firstNum > secondNum && sign && anotherNumb.sign) return new Numb("-" + minus(firstNum, secondNum, maxFract));
-        else if(sign && anotherNumb.sign) return new Numb("-" + plus(firstNum, secondNum, maxFract));
-        else if (!sign && anotherNumb.sign) return new Numb(plus(firstNum, secondNum, maxFract));
-        else return new Numb("0");
-    }
-
-    private String minus(long first, long second, int maxFract){
-        String toReturn = String.valueOf(first - second);
-        StringBuilder sb = new StringBuilder();
-
-        for (int i = 0; i < toReturn.length(); i++){
-            if (i == toReturn.length() - maxFract) sb.append(".");
-            sb.append(toReturn.charAt(i));
-        }
-
-        if (sb.indexOf(".") == 0) return 0 + sb.toString();
-        else return sb.toString();
+        return new Numb(res.toString(), maxScale);
     }
 
     public Numb multiplication(Numb anotherNumb){
+        long firstNum = number;
+        long secondNum = anotherNumb.number;
+        int lenOfFracts = scale + anotherNumb.scale;
+        int maxScale = Math.max(scale,anotherNumb.scale);
 
-        ArrayList<Long> firstNum = new ArrayList<>(), secondNumber = new ArrayList<>();
+        String result = String.valueOf(firstNum*secondNum);
+        StringBuilder res = new StringBuilder();
 
-        for (int i = 0; i < whole.length(); i++) firstNum.add(Long.parseLong(String.valueOf(whole.charAt(i))));
-        for (int i = 0; i < anotherNumb.whole.length(); i++) secondNumber.add(Long.parseLong(String.valueOf(anotherNumb.whole.charAt(i))));
-
-        for (int i = 0; i < fractional.length(); i++) firstNum.add(Long.parseLong(String.valueOf(fractional.charAt(i))));
-        for (int i = 0; i < anotherNumb.fractional.length(); i++) secondNumber.add(Long.parseLong(String.valueOf(anotherNumb.fractional.charAt(i))));
-
-        int diOfFractLen = fractional.length()+anotherNumb.fractional.length();
-
-        if (sign == anotherNumb.sign) return new Numb(multiplication(firstNum, secondNumber, diOfFractLen));
-        else return new Numb("-" + multiplication(firstNum, secondNumber, diOfFractLen));
-    }
-
-    @NotNull
-    private String multiplication(@NotNull ArrayList<Long> first, ArrayList<Long> second, double lenOfFracts) {
-        long fn = 0, sn = 0;
-        long count = 1;
-
-        for (int c = first.size() - 1; c >= 0; c--) {
-            fn += count * first.get(c);
-            count *= 10;
+        for (int i = 0; i < result.length(); i++){
+            if (i == result.length() - lenOfFracts) res.append(".");
+            res.append(result.charAt(i));
         }
-        count = 1;
-        for (int c = second.size() - 1; c >= 0; c--) {
-            sn += count * second.get(c);
-            count *= 10;
-        }
-
-        String res = String.valueOf(fn * sn);
-        StringBuilder sb = new StringBuilder();
-
-        int idx = 0;
-        while(idx != res.length()){
-            if (idx == res.length() - lenOfFracts){
-                sb.append('.');
-            }
-            sb.append(res.charAt(idx));
-            idx++;
-        }
-        return sb.toString();
+        return new Numb(res.toString(), maxScale);
     }
 
     public Numb division(Numb anotherNumb){
-        ArrayList<Integer> firstNum = new ArrayList<>(), secondNum = new ArrayList<>();
+        long firstNum = number;
+        long secondNum = anotherNumb.number;
+        int maxScale = Math.max(scale,anotherNumb.scale);
+        int minScale = Math.min(scale,anotherNumb.scale);
 
-        for (int i = 0; i < whole.length(); i++) firstNum.add(Integer.parseInt(String.valueOf(whole.charAt(i))));
-        for (int i = 0; i < anotherNumb.whole.length(); i++) secondNum.add(Integer.parseInt(String.valueOf(anotherNumb.whole.charAt(i))));
-
-        for (int i = 0; i < fractional.length(); i++) firstNum.add(Integer.parseInt(String.valueOf(fractional.charAt(i))));
-        for (int i = 0; i < anotherNumb.fractional.length(); i++) secondNum.add(Integer.parseInt(String.valueOf(anotherNumb.fractional.charAt(i))));
-
-        int difOfFractLen = Math.abs(fractional.length()-anotherNumb.fractional.length());
-
-        if (fractional.length() < anotherNumb.fractional.length()) {
-            while (difOfFractLen != 0){
-                firstNum.add(0);
-                difOfFractLen--;
-            }
-        }
-        else {
-            while (difOfFractLen != 0){
-                secondNum.add(0);
-                difOfFractLen--;
-            }
-        }
-
-        long fn = 0, sn = 0;
-        long count = 1;
-        for (int c = firstNum.size() - 1; c >= 0; c--) {
-            fn += count * firstNum.get(c);
-            count *= 10;
-        }
-
-        count = 1;
-        for (int c = secondNum.size() - 1; c >= 0; c--) {
-            sn += count * secondNum.get(c);
-            count *= 10;
-        }
-
-        if (fn == 0) return new Numb("0.0");
-        if (sn == 0) throw new ArithmeticException("Нельзя делить на ноль");
-        String result;
-        if (sign == anotherNumb.sign)  result = division(fn, sn);
-        else result = "-" + division(fn, sn);
-        if (Long.parseLong(whole) == 0 && Long.parseLong(anotherNumb.whole)>0) result="0.0";
-        return (new Numb(result)).roundingMath();
-    }
-
-    @NotNull
-    private String division(long fn, long sn) {
+        if (scale != maxScale) firstNum = aligment(firstNum, scale, maxScale);
+        if (anotherNumb.scale != maxScale) secondNum = aligment(secondNum, anotherNumb.scale, maxScale);
+        if (firstNum == 0) return new Numb("0.0", 1);
+        if (secondNum == 0) throw new ArithmeticException("Нельзя делить на ноль");
         int stop = 8;
         int idx = 0;
-
-        while (fn%sn!=0 && idx<stop){
+        while (firstNum%secondNum!=0 && idx<stop){
             idx++;
-            fn*=10;
+            firstNum*=10;
         }
 
         StringBuilder sb = new StringBuilder();
         int count = 0;
-        String toR = String.valueOf(fn/sn);
+        String toR = String.valueOf(firstNum/secondNum);
         int difLen = toR.length() - idx;
 
         if (difLen < 0) {
@@ -304,12 +174,11 @@ public class Numb {
                 difLen++;
             }
         }
-
         while(count != toR.length()){
             if (count == toR.length() - idx) sb.append(".");
             sb.append(toR.charAt(count));
             count++;
         }
-        return sb.toString();
+        return (new Numb(sb.toString(), minScale));
     }
 }
