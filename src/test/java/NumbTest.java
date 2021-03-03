@@ -45,10 +45,10 @@ class NumbTest {
 
     @Test
     void roundingMath() {
-        Numb t1 = new Numb("12124.00045", 10);
-        assertEquals("12124.0005", t1.roundingMath(4).getValue());
+        Numb t1 = new Numb("12124.12345", 10);
+        assertEquals("12124.1235", t1.roundingMath(4).getValue());
         Numb t2 = new Numb(-33.4966f, 6);
-        assertEquals("-33.48", t2.roundingMath(2).getValue());
+        assertEquals("-33.49", t2.roundingMath(2).getValue());
         Numb t3 = new Numb(0.0944, 3);
         assertEquals("0.1", t3.roundingMath(1).getValue());
         Numb t4 = new Numb("-23434.91669", 3);
@@ -82,7 +82,7 @@ class NumbTest {
         Numb t2 = new Numb("1234358960111", 4);
         assertEquals(1234000000000L, t2.toLong());
         Numb t3 = new Numb(1347655.5280000000f, 10);
-        assertEquals(1347655L, t3.toLong());
+        assertEquals(1347656L, t3.toLong());
         Numb t4 = new Numb("2643490807859.04005", 3);
         assertEquals(2640000000000L, t4.toLong());
         Numb t5 = new Numb(3453, 2);
@@ -150,7 +150,7 @@ class NumbTest {
         assertEquals("-544488.4473", t15.plus(t16).getValue());
         Numb t17 = new Numb(1.112, 3);
         Numb t18 = new Numb(-1.112f, 3);
-        assertEquals("0", t17.plus(t18).getValue());
+        assertEquals("0.0", t17.plus(t18).getValue());
         Numb t19 = new Numb(-28312L, 18);
         Numb t20 = new Numb(-37134.022312, 10);
         assertEquals("-65446.02231", t19.plus(t20).getValue());
@@ -184,7 +184,7 @@ class NumbTest {
         assertEquals("544488.2459", t15.minus(t16).getValue());
         Numb t17 = new Numb(1.112, 3);
         Numb t18 = new Numb(1.112f, 3);
-        assertEquals("0", t17.minus(t18).getValue());
+        assertEquals("0.0", t17.minus(t18).getValue());
         Numb t19 = new Numb(-28312L, 18);
         Numb t20 = new Numb(-37134.022312, 10);
         assertEquals("8822.02231", t19.minus(t20).getValue());
@@ -218,7 +218,7 @@ class NumbTest {
         assertEquals("21790000", t11.multiplication(t12).getValue());
         Numb t13 = new Numb(99432.1000,14);
         Numb t14 = new Numb(3, 8);
-        assertEquals("298296.3", t13.multiplication(t14).getValue());
+        assertEquals("298296.30", t13.multiplication(t14).getValue());
         Numb t15 = new Numb(-8800.555, 7);
         Numb t16 = new Numb(-3535.099, 7);
         assertEquals("31110830", t15.multiplication(t16).getValue());

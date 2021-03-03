@@ -5,81 +5,48 @@ public class Numb {
     private int precision = 0;
     private int scale = 0;
 
-    public Numb(@NotNull String s, int precision){
+    public Numb(@NotNull String s, int precision){ setValue(s, precision); }
+
+    public Numb(double d, int precision){ setValue(String.valueOf(d), precision); }
+
+    public Numb(float f, int precision){ setValue(String.valueOf(f), precision); }
+
+    public Numb(int i, int precision){ setValue(String.valueOf(i), precision); }
+
+    public Numb(long l, int precision){ setValue(String.valueOf(l), precision); }
+
+    private void setValue(String s, int precision){
         if (precision <= 0 || precision >= 19) throw new IllegalArgumentException("Указанная точность некорректна");
-        String[] str = s.trim().split("\\.");
-        if (str.length > 2 || !s.matches("\\A[-]?\\d+([.](\\d+))?\\z"))
-            throw new IllegalArgumentException("Введено некорректное число");
-        setValue(str, precision);
-    }
-
-    public Numb(double d, int precision){
-        if (precision <= 0 || precision >= 19) throw new IllegalArgumentException("Указанная точность некорректна");
-        String[] str = String.valueOf(d).trim().split("\\.");
-        if (str.length > 2 || !String.valueOf(d).matches("\\A[-]?\\d+([.](\\d+))?\\z"))
-            throw new IllegalArgumentException("Введено некорректное число");
-        setValue(str, precision);
-    }
-
-    public Numb(float f, int precision){
-        if (precision <= 0 || precision >= 19) throw new IllegalArgumentException("Указанная точность некорректна");
-        String[] str = String.valueOf(f).trim().split("\\.");
-        if (str.length > 2 || !String.valueOf(f).matches("\\A[-]?\\d+([.](\\d+))?\\z"))
-            throw new IllegalArgumentException("Введено некорректное число");
-        setValue(str, precision);
-    }
-
-    public Numb(int i, int precision){
-        setValue(new String[] {String.valueOf(i)}, precision);
-    }
-
-    public Numb(long l, int precision){
-        setValue(new String[] {String.valueOf(l)}, precision);
-    }
-
-    private void setValue(String[] str, int precision){
         this.precision = precision;
-        char sign = ' ';
-        if (str[0].charAt(0) == '-') sign = '-';
-        str[0] = String.valueOf(Math.abs(Long.parseLong(str[0])));
-        switch (str.length){
-            case 2 -> {
-                int lenOfNum = str[0].length() + str[1].length();
-                String strNum = str[0] + str[1];
-                StringBuilder sb = new StringBuilder();
-                if (precision > lenOfNum){
-                    scale = str[1].length();
-                    sb.append(sign).append(strNum);
-                    number = Long.parseLong(sb.toString().trim());
-                } else if (precision < lenOfNum){
-                    scale = str[1].length() - (lenOfNum - precision);
-                    sb.append(sign).append(strNum, 0, precision);
-                    number = Long.parseLong(sb.toString().trim());
 
-                } else {
-                    scale = str[1].length();
-                    number = Long.parseLong((sign + strNum).trim());
-                }
-                if (precision < lenOfNum && Integer.parseInt(String.valueOf(strNum.charAt(precision))) >= 5) {
-                    if (number > 0) number++;
-                    else number--;
-                }
-            }
-            case 1 -> {
-                if (precision > str[0].length()){
-                    number = Long.parseLong((sign + str[0]).trim());
-                } else if (precision < str[0].length()){
-                    scale = precision - str[0].length();
-                    number = Long.parseLong((sign + str[0]).trim().substring(0, precision));
-                } else {
-                    scale = 0;
-                    number = Long.parseLong((sign + str[0]).trim());
-                }
-                if (precision < str[0].length() && Integer.parseInt(String.valueOf(str[0].charAt(precision))) >= 5) {
-                    if (number > 0) number++;
-                    else number--;
-                }
-            }
+        String[] strNum = s.trim().split("\\.");
+        if (strNum.length > 2 || !s.matches("\\A[-]?\\d+[.]?(\\d+)?\\z"))
+            throw new IllegalArgumentException("Введено некорректное число");
+
+        char sign = ' ';
+        if (strNum[0].charAt(0) == '-') sign = '-';
+
+        String[] str = new String[2];
+        str[0] = String.valueOf(Math.abs(Long.parseLong(strNum[0])));
+
+        if(strNum.length == 2) str[1] = strNum[1];
+        else str[1] = "0";
+
+        int lenOfNum = str[0].length() + str[1].length();
+        String fullNum = str[0] + str[1];
+        StringBuilder sb = new StringBuilder();
+
+        if (precision >= lenOfNum){
+            scale = str[1].length();
+            sb.append(sign).append(fullNum);
+        } else {
+            scale = str[1].length() - (lenOfNum - precision);
+            sb.append(sign).append(fullNum, 0, precision);
+        }
+        number = Long.parseLong(sb.toString().trim());
+        if (precision < lenOfNum && Integer.parseInt(String.valueOf(fullNum.charAt(precision))) >= 5) {
+            if (number > 0) number++;
+            else number--;
         }
     }
 
@@ -99,32 +66,29 @@ public class Numb {
         return get.toString(); }
 
     public Numb roundingToZero(int i) {
-        String rt = String.valueOf((long) (number / Math.pow(10, scale - i)));
-        StringBuilder sb = new StringBuilder();
-        sb.append(rt).insert(rt.length() - i, ".");
-        if (rt.length() - i == 0) sb.insert(0, "0");
-        if (i == 0) sb.append(0);
-        return new Numb(sb.toString(), precision);
+        long rt = (long) (number / Math.pow(10, scale - i));
+        return new Numb(collector(rt, i), precision);
     }
 
     public Numb roundingMath(int i) {
         long rt = (long) (number / Math.pow(10, scale - i));
-        String strNum = String.valueOf(number);
-        StringBuilder sb = new StringBuilder();
-        int newLen = String.valueOf(number).length() - scale + i;
-
-        if (newLen < strNum.length() && Integer.parseInt(String.valueOf(strNum.charAt(newLen))) >= 5) rt++;
-
-        sb.append(rt).insert(String.valueOf(rt).length() - i, ".");
-        if (String.valueOf(rt).length() - i == 0) sb.insert(0, "0");
-        if (i == 0) sb.append(0);
-
-        return new Numb(sb.toString(), precision);
+        if (String.valueOf(number).length() - scale + i < String.valueOf(number).length() &&
+                (int)(number % Math.pow(10, scale - i)) / Math.pow(10, scale - i - 1) >= 5)
+            rt++;
+        return new Numb(collector(rt, i), precision);
     }
 
-    public int toInt(){ return (int) (number / Math.pow(10, scale)); }
+    public int toInt(){
+        double toRet = number / Math.pow(10, scale);
+        if (toRet * 10 % 10 >= 5) return (int) (toRet + 1);
+        else return (int) toRet;
+    }
 
-    public long toLong(){ return (long) (number / Math.pow(10, scale)); }
+    public long toLong(){
+        double toRet = number / Math.pow(10, scale);
+        if (toRet * 10 % 10 >= 5) return (long) (toRet + 1);
+        else return (long) toRet;
+    }
 
     public float toFloat(){ return (float) (number / Math.pow(10, scale)); }
 
@@ -139,6 +103,20 @@ public class Numb {
         return num;
     }
 
+    private String collector(long num, int scale){
+        StringBuilder sb = new StringBuilder();
+        int difLen = String.valueOf(num).length() - scale;
+        if (difLen <= 0) {
+            sb.append("0.");
+            while (difLen < 0) {
+                sb.append(0);
+                difLen++;
+            }
+            sb.append(num);
+        } else sb.append(num).insert(difLen, ".");
+        return sb.toString();
+    }
+
     public Numb plus(Numb anotherNumb){
         long firstNum = number;
         long secondNum = anotherNumb.number;
@@ -149,12 +127,7 @@ public class Numb {
         if (anotherNumb.scale != maxScale) secondNum = aligment(secondNum, anotherNumb.scale, maxScale);
         if (firstNum + secondNum == 0) return new Numb(0, minPrecision);
 
-        int dot = String.valueOf(firstNum + secondNum).length() - maxScale;
-        StringBuilder sb = new StringBuilder();
-        sb.append(firstNum + secondNum).insert(dot, ".");
-        if (dot == 0) sb.insert(0, "0");
-
-        return new Numb(sb.toString(), minPrecision);
+        return new Numb(collector(firstNum + secondNum, maxScale), minPrecision);
     }
 
     public Numb minus(Numb anotherNumb){
@@ -167,12 +140,7 @@ public class Numb {
         if (anotherNumb.scale != maxScale) secondNum = aligment(secondNum, anotherNumb.scale, maxScale);
         if (firstNum - secondNum == 0) return new Numb(0, minPrecision);
 
-        int dot = String.valueOf(firstNum - secondNum).length() - maxScale;
-        StringBuilder sb = new StringBuilder();
-        sb.append(firstNum - secondNum).insert(dot, ".");
-        if (dot == 0) sb.insert(0, "0");
-
-        return new Numb(sb.toString(), minPrecision);
+        return new Numb(collector(firstNum - secondNum, maxScale), minPrecision);
     }
 
     public Numb multiplication(Numb anotherNumb){
@@ -182,13 +150,9 @@ public class Numb {
         int minPrecision = Math.min(precision, anotherNumb.precision);
 
         long result = firstNum*secondNum;
-        int lenOfRes = String.valueOf(result).length();
+        if (result == 0) return new Numb(0, 1);
 
-        StringBuilder sb = new StringBuilder();
-        if (lenOfRes - lenOfFracts < String.valueOf(result).length()) sb.append(firstNum * secondNum).insert(lenOfRes - lenOfFracts, ".");
-        else sb.append(firstNum * secondNum);
-
-        return new Numb(sb.toString(), minPrecision);
+        return new Numb(collector(firstNum * secondNum, lenOfFracts), minPrecision);
     }
 
     public Numb division(Numb anotherNumb){
@@ -208,24 +172,6 @@ public class Numb {
             firstNum *= 10;
         }
 
-        StringBuilder sb = new StringBuilder();
-        int count = 0;
-        String toR = String.valueOf(firstNum / secondNum);
-        int difLen = toR.length() - idx;
-
-        if (difLen < 0) {
-            sb.append("0.");
-            while (difLen < 0) {
-                sb.append(0);
-                difLen++;
-            }
-        }
-        while(count != toR.length()){
-            if (count == toR.length() - idx) sb.append(".");
-            sb.append(toR.charAt(count));
-            count++;
-        }
-
-        return new Numb(sb.toString(), minPrecision);
+        return new Numb(collector(firstNum / secondNum, idx), minPrecision);
     }
 }
