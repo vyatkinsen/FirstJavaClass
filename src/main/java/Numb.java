@@ -15,6 +15,17 @@ public class Numb {
 
     public Numb(long l, int precision){ setValue(String.valueOf(l), precision); }
 
+    private Numb(long number, int scale, int precis){
+        int i = precis - (String.valueOf(Math.abs(number)).length() - scale);
+        long rt = (long) (number / Math.pow(10, scale - i));
+        if (String.valueOf(number).length() - scale + i < String.valueOf(number).length() &&
+                (int)(number % Math.pow(10, scale - i)) / Math.pow(10, scale - i - 1) >= 5)
+            rt++;
+        this.scale = i;
+        this.number = rt;
+        this.precision = precis;
+    }
+
     private void setValue(String s, int precision){
         if (precision <= 0 || precision >= 19) throw new IllegalArgumentException("Указанная точность некорректна");
         this.precision = precision;
@@ -48,6 +59,7 @@ public class Numb {
             if (number > 0) number++;
             else number--;
         }
+        if (number == 0) scale = 0;
     }
 
     public String getValue(){
@@ -63,11 +75,17 @@ public class Numb {
         }
         if (String.valueOf(number).length() - scale == 0) get.insert(0, "0");
         get.append("0".repeat(Math.max(0, -scale)));
+        int len = get.length();
+        for (int i = len - 1; i > len - scale ; i--){
+            if (get.charAt(i) == '0') {
+                get.delete(i, get.length());
+            } else break;
+        }
         return get.toString(); }
 
     public Numb roundingToZero(int i) {
         long rt = (long) (number / Math.pow(10, scale - i));
-        return new Numb(collector(rt, i), precision);
+        return new Numb(rt, i, precision);
     }
 
     public Numb roundingMath(int i) {
@@ -75,7 +93,7 @@ public class Numb {
         if (String.valueOf(number).length() - scale + i < String.valueOf(number).length() &&
                 (int)(number % Math.pow(10, scale - i)) / Math.pow(10, scale - i - 1) >= 5)
             rt++;
-        return new Numb(collector(rt, i), precision);
+        return new Numb(rt, i, precision);
     }
 
     public int toInt(){
@@ -103,57 +121,30 @@ public class Numb {
         return num;
     }
 
-    private String collector(long num, int scale){
-        StringBuilder sb = new StringBuilder();
-        int difLen = String.valueOf(num).length() - scale;
-        if (difLen <= 0) {
-            sb.append("0.");
-            while (difLen < 0) {
-                sb.append(0);
-                difLen++;
+    private Numb operator(long secondNum, int secondScale, int minPrecision, char operation){
+        long fn = number;
+        long sn = secondNum;
+        int maxScale = Math.max(scale, secondScale);
+        if (scale != maxScale) fn = aligment(fn, scale, maxScale);
+        if (secondScale != maxScale) sn = aligment(secondNum, secondScale, maxScale);
+        switch (operation){
+            case '+' -> {
+                return new Numb(fn + sn, maxScale, minPrecision);
             }
-            sb.append(num);
-        } else sb.append(num).insert(difLen, ".");
-        return sb.toString();
+            case '-' -> {
+                return new Numb(fn - sn, maxScale, minPrecision);
+            }
+            default -> {
+                return new Numb(0, 1);
+            }
+        }
     }
 
-    public Numb plus(Numb anotherNumb){
-        long firstNum = number;
-        long secondNum = anotherNumb.number;
-        int maxScale = Math.max(scale, anotherNumb.scale);
-        int minPrecision = Math.min(precision, anotherNumb.precision);
+    public Numb plus(Numb anotherNumb) { return operator(anotherNumb.number, anotherNumb.scale, Math.min(precision, anotherNumb.precision), '+'); }
 
-        if (scale != maxScale) firstNum = aligment(firstNum, scale, maxScale);
-        if (anotherNumb.scale != maxScale) secondNum = aligment(secondNum, anotherNumb.scale, maxScale);
-        if (firstNum + secondNum == 0) return new Numb(0, minPrecision);
+    public Numb minus(Numb anotherNumb) { return operator(anotherNumb.number, anotherNumb.scale, Math.min(precision, anotherNumb.precision), '-'); }
 
-        return new Numb(collector(firstNum + secondNum, maxScale), minPrecision);
-    }
-
-    public Numb minus(Numb anotherNumb){
-        long firstNum = number;
-        long secondNum = anotherNumb.number;
-        int maxScale = Math.max(scale, anotherNumb.scale);
-        int minPrecision = Math.min(precision, anotherNumb.precision);
-
-        if (scale != maxScale) firstNum = aligment(firstNum, scale, maxScale);
-        if (anotherNumb.scale != maxScale) secondNum = aligment(secondNum, anotherNumb.scale, maxScale);
-        if (firstNum - secondNum == 0) return new Numb(0, minPrecision);
-
-        return new Numb(collector(firstNum - secondNum, maxScale), minPrecision);
-    }
-
-    public Numb multiplication(Numb anotherNumb){
-        long firstNum = number;
-        long secondNum = anotherNumb.number;
-        int lenOfFracts = scale + anotherNumb.scale;
-        int minPrecision = Math.min(precision, anotherNumb.precision);
-
-        long result = firstNum*secondNum;
-        if (result == 0) return new Numb(0, 1);
-
-        return new Numb(collector(firstNum * secondNum, lenOfFracts), minPrecision);
-    }
+    public Numb multiplication(Numb anotherNumb){ return new Numb(number * anotherNumb.number, scale + anotherNumb.scale, Math.min(precision, anotherNumb.precision)); }
 
     public Numb division(Numb anotherNumb){
         long firstNum = number;
@@ -172,6 +163,6 @@ public class Numb {
             firstNum *= 10;
         }
 
-        return new Numb(collector(firstNum / secondNum, idx), minPrecision);
+        return new Numb(firstNum / secondNum, idx, minPrecision);
     }
 }
