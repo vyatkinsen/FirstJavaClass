@@ -18,9 +18,9 @@ public class Numb {
     private Numb(long number, int scale, int precis){
         int i = precis - (String.valueOf(Math.abs(number)).length() - scale);
         long rt = (long) (number / Math.pow(10, scale - i));
-        if (String.valueOf(number).length() - scale + i < String.valueOf(number).length() &&
-                (int)(number % Math.pow(10, scale - i)) / Math.pow(10, scale - i - 1) >= 5)
-            rt++;
+
+        if (i < scale && (int)(number % Math.pow(10, scale - i)) / Math.pow(10, scale - i - 1) >= 5) rt++;
+
         this.scale = i;
         this.number = rt;
         this.precision = precis;
@@ -41,8 +41,7 @@ public class Numb {
         str[0] = String.valueOf(Math.abs(Long.parseLong(strNum[0])));
 
         if(strNum.length == 2) str[1] = strNum[1];
-        else str[1] = "0";
-
+        else str[1] = "";
         int lenOfNum = str[0].length() + str[1].length();
         String fullNum = str[0] + str[1];
         StringBuilder sb = new StringBuilder();
@@ -121,18 +120,59 @@ public class Numb {
         return num;
     }
 
+    private long[] checkForOverflow(long num, int scale, int maxScale){
+        int defOfScale = maxScale - scale;
+        long xz = (long) (Long.MAX_VALUE / Math.pow(10, defOfScale));
+        int counter = 0;
+        if (num > xz){
+            while(num > xz){
+                num/=10;
+                counter++;
+            }
+            scale -= counter;
+        }
+        return new long[] {num, scale, counter};
+    }
+
     private Numb operator(long secondNum, int secondScale, int minPrecision, char operation){
-        long fn = number;
-        long sn = secondNum;
-        int maxScale = Math.max(scale, secondScale);
-        if (scale != maxScale) fn = aligment(fn, scale, maxScale);
-        if (secondScale != maxScale) sn = aligment(secondNum, secondScale, maxScale);
+        long firstNumber = number;
+        long secondNumber = secondNum;
+        int firSc = scale;
+        int secSc = secondScale;
+        int maxScale = Math.max(firSc, secSc);
+        int counter = 0;
+
+        if (firSc != maxScale) {
+            long[] check = checkForOverflow(firstNumber, firSc, maxScale);
+            firstNumber = check[0];
+            firSc = (int) check[1];
+            counter = (int) check[2];
+            secondNumber /= Math.pow(10, counter);
+            secSc -= counter;
+        }
+
+        if (secSc != maxScale) {
+            long[] check = checkForOverflow(secondNum, secSc, maxScale);
+            secondNumber = check[0];
+            secSc = (int) check[1];
+            counter = (int) check[2];
+            firstNumber /= Math.pow(10, counter);
+            firSc -= counter;
+        }
+
+        int newMaxScale = Math.max(firSc, secSc);
+
+        if (firSc != newMaxScale) firstNumber = aligment(firstNumber, firSc, newMaxScale);
+        if (secSc != newMaxScale) secondNumber = aligment(secondNumber, secSc, newMaxScale);
+
+        minPrecision -= counter;
+
         switch (operation){
             case '+' -> {
-                return new Numb(fn + sn, maxScale, minPrecision);
+                return new Numb(firstNumber + secondNumber, newMaxScale, minPrecision);
             }
             case '-' -> {
-                return new Numb(fn - sn, maxScale, minPrecision);
+                return new Numb(firstNumber - secondNumber, maxScale, minPrecision);
             }
             default -> {
                 return new Numb(0, 1);
@@ -144,7 +184,28 @@ public class Numb {
 
     public Numb minus(Numb anotherNumb) { return operator(anotherNumb.number, anotherNumb.scale, Math.min(precision, anotherNumb.precision), '-'); }
 
-    public Numb multiplication(Numb anotherNumb){ return new Numb(number * anotherNumb.number, scale + anotherNumb.scale, Math.min(precision, anotherNumb.precision)); }
+    public Numb multiplication(Numb anotherNumb){
+        boolean trigger = true;
+        long firstNumber = number;
+        long secondNumber = anotherNumb.number;
+        int firstScale = scale;
+        int secondScale = anotherNumb.scale;
+        int minPrecision = Math.min(precision, anotherNumb.precision);
+
+        if (firstNumber == 0 || secondNumber == 0) return new Numb(0, 1);
+        if ((firstNumber * secondNumber) / firstNumber == secondNumber) return new Numb(number * anotherNumb.number, scale + anotherNumb.scale, Math.min(precision, anotherNumb.precision));
+        else{
+            while (trigger){
+                firstNumber /= 10;
+                secondNumber /= 10;
+                minPrecision -= 2;
+                if (firstScale > 0) firstScale--;
+                if (secondScale > 0) secondScale--;
+                if ((firstNumber * secondNumber) / firstNumber == secondNumber) trigger = false;
+            }
+            return new Numb (firstNumber * secondNumber, firstScale + secondScale, minPrecision);
+        }
+    }
 
     public Numb division(Numb anotherNumb){
         long firstNum = number;

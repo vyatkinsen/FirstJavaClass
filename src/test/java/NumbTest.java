@@ -154,6 +154,12 @@ class NumbTest {
         Numb t19 = new Numb(-28312L, 18);
         Numb t20 = new Numb(-37134.022312, 10);
         assertEquals("-65446.02231", t19.plus(t20).getValue());
+        Numb t21 = new Numb("-9223372036854.775807685577580", 18);
+        Numb t22 = new Numb("-9223372336854.4256", 18);
+        assertEquals("-18446744373709.2032", t21.plus(t22).getValue());
+        Numb t23 = new Numb("-922337204.775807685577580", 18);
+        Numb t24 = new Numb("-239450.42532456", 18);
+        assertEquals("-922576655.201132288", t23.plus(t24).getValue());
     }
 
     @Test
@@ -194,6 +200,12 @@ class NumbTest {
         Numb t23 = new Numb(16.3, 3);
         Numb t24 = new Numb("10.3", 3);
         assertEquals("6.0", t23.minus(t24).getValue());
+        Numb t25 = new Numb("-9223372036854.77580768", 18);
+        Numb t26 = new Numb("9223372336854.4256", 18);
+        assertEquals("-18446744373709.2032", t25.minus(t26).getValue());
+        Numb t27 = new Numb("-922337204.775807685577580", 18);
+        Numb t28 = new Numb("-239450.42532456", 18);
+        assertEquals("-922097754.3504832", t27.minus(t28).getValue());
     }
 
     @Test
@@ -231,6 +243,18 @@ class NumbTest {
         Numb t21 = new Numb(0, 7);
         Numb t22 = new Numb("0.0", 1);
         assertEquals("0", t21.multiplication(t22).getValue());
+        Numb t25 = new Numb("99999.9999999", 18);
+        Numb t26 = new Numb("9999999.99999000", 18);
+        assertEquals("999999900000", t25.multiplication(t26).getValue());
+        Numb t27 = new Numb("-9223372036854775.81", 18);
+        Numb t28 = new Numb("999.999999999000", 18);
+        assertEquals("-92230000000000", t27.multiplication(t28).getValue());
+        Numb t29 = new Numb("922337299999.2", 18);
+        Numb t30 = new Numb(150.3492534, 16);
+        assertEquals("13867272130100", t29.multiplication(t30).getValue());
+        Numb t31 = new Numb(7299999.2, 18);
+        Numb t32 = new Numb("15340953340.3492534", 15);
+        assertEquals("11198880597000000", t31.multiplication(t32).getValue());
     }
 
     @Test
